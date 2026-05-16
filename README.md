@@ -163,12 +163,19 @@
 
     <div class="controls">
         <label>
+            Outil :
+            <select id="toolSelector" style="padding: 5px; border-radius: var(--border-radius); border: 2px solid var(--primary-color);">
+                <option value="fill">Pot de peinture (Clic)</option>
+                <option value="brush">Pinceau (Glisser)</option>
+            </select>
+        </label>
+        <label>
             Couleur :
             <input type="color" id="colorPicker" value="#ffc0cb" />
         </label>
         <label>
-            Opacité :
-            <input type="range" id="opacitySlider" min="0" max="1" step="0.01" value="0.2" />
+            Opacité (Pinceau) :
+            <input type="range" id="opacitySlider" min="0" max="1" step="0.01" value="1" />
         </label>
         <label>
             Taille pinceau :
@@ -190,6 +197,7 @@
         const brushSize = document.getElementById("brushSize");
         const clearBtn = document.getElementById("clear");
         const downloadBtn = document.getElementById("download");
+        const toolSelector = document.getElementById("toolSelector");
 
         let drawing = false;
         let img = new Image();
@@ -231,6 +239,24 @@
             localStorage.setItem("savedCanvas", dataURL);
         }
 
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            let clientX = e.clientX;
+            let clientY = e.clientY;
+            
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            }
+            
+            return {
+                x: Math.floor((clientX - rect.left) * scaleX),
+                y: Math.floor((clientY - rect.top) * scaleY)
+            };
+        }
+
         function drawAt(x, y) {
             const color = colorPicker.value;
             const opacity = parseFloat(opacitySlider.value);
@@ -246,56 +272,164 @@
             ctx.fill();
         }
 
+        function hexToRgb(hex) {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return {r, g, b};
+        }
+
+        function floodFill(startX, startY, fillColorHex, tolerance = 100) {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            if (startX < 0 || startX >= width || startY < 0 || startY >= height) return;
+
+            const startPos = (startY * width + startX) * 4;
+            const startR = data[startPos];
+            const startG = data[startPos + 1];
+            const startB = data[startPos + 2];
+            const startA = data[startPos + 3];
+
+            const fillRgb = hexToRgb(fillColorHex);
+            const fillR = fillRgb.r;
+            const fillG = fillRgb.g;
+            const fillB = fillRgb.b;
+            const fillA = 255;
+
+            if (Math.abs(startR - fillR) <= tolerance && Math.abs(startG - fillG) <= tolerance && Math.abs(startB - fillB) <= tolerance && Math.abs(startA - fillA) <= tolerance) {
+                return;
+            }
+
+            const matchColor = (pos) => {
+                const r = data[pos];
+                const g = data[pos + 1];
+                const b = data[pos + 2];
+                const a = data[pos + 3];
+                return Math.abs(r - startR) <= tolerance &&
+                       Math.abs(g - startG) <= tolerance &&
+                       Math.abs(b - startB) <= tolerance &&
+                       Math.abs(a - startA) <= tolerance;
+            };
+
+            const colorPixel = (pos) => {
+                data[pos] = fillR;
+                data[pos + 1] = fillG;
+                data[pos + 2] = fillB;
+                data[pos + 3] = fillA;
+            };
+
+            const stack = [[startX, startY]];
+            
+            while (stack.length > 0) {
+                const [x, y] = stack.pop();
+                let currentPos = (y * width + x) * 4;
+                
+                let leftX = x;
+                while (leftX >= 0 && matchColor(currentPos)) {
+                    leftX--;
+                    currentPos -= 4;
+                }
+                leftX++;
+                currentPos += 4;
+                
+                let rightX = leftX;
+                let scanAbove = false;
+                let scanBelow = false;
+                
+                while (rightX < width && matchColor(currentPos)) {
+                    colorPixel(currentPos);
+                    
+                    if (y > 0) {
+                        const abovePos = currentPos - width * 4;
+                        if (matchColor(abovePos)) {
+                            if (!scanAbove) {
+                                stack.push([rightX, y - 1]);
+                                scanAbove = true;
+                            }
+                        } else {
+                            scanAbove = false;
+                        }
+                    }
+                    
+                    if (y < height - 1) {
+                        const belowPos = currentPos + width * 4;
+                        if (matchColor(belowPos)) {
+                            if (!scanBelow) {
+                                stack.push([rightX, y + 1]);
+                                scanBelow = true;
+                            }
+                        } else {
+                            scanBelow = false;
+                        }
+                    }
+                    
+                    rightX++;
+                    currentPos += 4;
+                }
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+        }
+
         canvas.addEventListener("mousedown", (e) => {
-            drawing = true;
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            drawAt(x, y);
+            const coords = getCoordinates(e);
+            if (toolSelector.value === 'fill') {
+                floodFill(coords.x, coords.y, colorPicker.value, 100);
+                saveCanvas();
+            } else {
+                drawing = true;
+                drawAt(coords.x, coords.y);
+            }
         });
 
         canvas.addEventListener("mousemove", (e) => {
-            if (!drawing) return;
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            drawAt(x, y);
+            if (!drawing || toolSelector.value === 'fill') return;
+            const coords = getCoordinates(e);
+            drawAt(coords.x, coords.y);
         });
 
         canvas.addEventListener("mouseup", () => {
-            drawing = false;
-            saveCanvas();
+            if (drawing) {
+                drawing = false;
+                saveCanvas();
+            }
         });
 
         canvas.addEventListener("mouseleave", () => {
-            drawing = false;
-            saveCanvas();
+            if (drawing) {
+                drawing = false;
+                saveCanvas();
+            }
         });
 
         // Support mobile : touch
         canvas.addEventListener("touchstart", (e) => {
-            e.preventDefault();
-            drawing = true;
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-            drawAt(x, y);
-        });
+            if (e.touches.length === 1) e.preventDefault();
+            const coords = getCoordinates(e);
+            if (toolSelector.value === 'fill') {
+                floodFill(coords.x, coords.y, colorPicker.value, 100);
+                saveCanvas();
+            } else {
+                drawing = true;
+                drawAt(coords.x, coords.y);
+            }
+        }, { passive: false });
 
         canvas.addEventListener("touchmove", (e) => {
+            if (!drawing || toolSelector.value === 'fill') return;
             e.preventDefault();
-            if (!drawing) return;
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-            drawAt(x, y);
-        });
+            const coords = getCoordinates(e);
+            drawAt(coords.x, coords.y);
+        }, { passive: false });
 
         canvas.addEventListener("touchend", () => {
-            drawing = false;
-            saveCanvas();
+            if (drawing) {
+                drawing = false;
+                saveCanvas();
+            }
         });
 
         clearBtn.addEventListener("click", () => {
