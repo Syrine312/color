@@ -279,7 +279,7 @@
             return {r, g, b};
         }
 
-        function floodFill(startX, startY, fillColorHex, tolerance = 100) {
+        function floodFill(startX, startY, fillColorHex, tolerance = 80) {
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const data = imageData.data;
             const width = canvas.width;
@@ -299,9 +299,11 @@
             const fillB = fillRgb.b;
             const fillA = 255;
 
-            if (Math.abs(startR - fillR) <= tolerance && Math.abs(startG - fillG) <= tolerance && Math.abs(startB - fillB) <= tolerance && Math.abs(startA - fillA) <= tolerance) {
+            if (startR === fillR && startG === fillG && startB === fillB && startA === fillA) {
                 return;
             }
+
+            const visited = new Uint8Array(width * height);
 
             const matchColor = (pos) => {
                 const r = data[pos];
@@ -325,10 +327,14 @@
             
             while (stack.length > 0) {
                 const [x, y] = stack.pop();
-                let currentPos = (y * width + x) * 4;
+                const pixelIndex = y * width + x;
+                
+                if (visited[pixelIndex]) continue;
+                
+                let currentPos = pixelIndex * 4;
                 
                 let leftX = x;
-                while (leftX >= 0 && matchColor(currentPos)) {
+                while (leftX >= 0 && matchColor(currentPos) && !visited[y * width + leftX]) {
                     leftX--;
                     currentPos -= 4;
                 }
@@ -339,12 +345,13 @@
                 let scanAbove = false;
                 let scanBelow = false;
                 
-                while (rightX < width && matchColor(currentPos)) {
+                while (rightX < width && matchColor(currentPos) && !visited[y * width + rightX]) {
                     colorPixel(currentPos);
+                    visited[y * width + rightX] = 1;
                     
                     if (y > 0) {
                         const abovePos = currentPos - width * 4;
-                        if (matchColor(abovePos)) {
+                        if (!visited[(y - 1) * width + rightX] && matchColor(abovePos)) {
                             if (!scanAbove) {
                                 stack.push([rightX, y - 1]);
                                 scanAbove = true;
@@ -356,7 +363,7 @@
                     
                     if (y < height - 1) {
                         const belowPos = currentPos + width * 4;
-                        if (matchColor(belowPos)) {
+                        if (!visited[(y + 1) * width + rightX] && matchColor(belowPos)) {
                             if (!scanBelow) {
                                 stack.push([rightX, y + 1]);
                                 scanBelow = true;
@@ -377,7 +384,7 @@
         canvas.addEventListener("mousedown", (e) => {
             const coords = getCoordinates(e);
             if (toolSelector.value === 'fill') {
-                floodFill(coords.x, coords.y, colorPicker.value, 100);
+                floodFill(coords.x, coords.y, colorPicker.value, 80);
                 saveCanvas();
             } else {
                 drawing = true;
@@ -410,7 +417,7 @@
             if (e.touches.length === 1) e.preventDefault();
             const coords = getCoordinates(e);
             if (toolSelector.value === 'fill') {
-                floodFill(coords.x, coords.y, colorPicker.value, 100);
+                floodFill(coords.x, coords.y, colorPicker.value, 80);
                 saveCanvas();
             } else {
                 drawing = true;
