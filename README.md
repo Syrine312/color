@@ -166,6 +166,7 @@
             Outil :
             <select id="toolSelector" style="padding: 5px; border-radius: var(--border-radius); border: 2px solid var(--primary-color);">
                 <option value="fill">Pot de peinture (Clic)</option>
+                <option value="erase">Gomme magique (Clic)</option>
                 <option value="brush">Pinceau (Glisser)</option>
             </select>
         </label>
@@ -386,6 +387,9 @@
             if (toolSelector.value === 'fill') {
                 floodFill(coords.x, coords.y, colorPicker.value, 80);
                 saveCanvas();
+            } else if (toolSelector.value === 'erase') {
+                floodFill(coords.x, coords.y, '#ffffff', 80);
+                saveCanvas();
             } else {
                 drawing = true;
                 drawAt(coords.x, coords.y);
@@ -393,7 +397,7 @@
         });
 
         canvas.addEventListener("mousemove", (e) => {
-            if (!drawing || toolSelector.value === 'fill') return;
+            if (!drawing || toolSelector.value === 'fill' || toolSelector.value === 'erase') return;
             const coords = getCoordinates(e);
             drawAt(coords.x, coords.y);
         });
@@ -419,6 +423,9 @@
             if (toolSelector.value === 'fill') {
                 floodFill(coords.x, coords.y, colorPicker.value, 80);
                 saveCanvas();
+            } else if (toolSelector.value === 'erase') {
+                floodFill(coords.x, coords.y, '#ffffff', 80);
+                saveCanvas();
             } else {
                 drawing = true;
                 drawAt(coords.x, coords.y);
@@ -426,7 +433,7 @@
         }, { passive: false });
 
         canvas.addEventListener("touchmove", (e) => {
-            if (!drawing || toolSelector.value === 'fill') return;
+            if (!drawing || toolSelector.value === 'fill' || toolSelector.value === 'erase') return;
             e.preventDefault();
             const coords = getCoordinates(e);
             drawAt(coords.x, coords.y);
