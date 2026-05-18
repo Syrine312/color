@@ -1,107 +1,201 @@
-
-<html lang="fr">
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
 <head>
     <meta charset="UTF-8" />
-   
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ColorApp</title>
+    <!-- Modern typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #4a6fa5;
-            --secondary-color: #ffc0cb;
-            --accent-color: #ff8c94;
-            --light-color: #f8f9fa;
-            --dark-color: #343a40;
-            --border-radius: 8px;
-            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --primary-color: #6366f1; /* Indigo */
+            --secondary-color: #ec4899; /* Pink */
+            --accent-color: #8b5cf6; /* Purple */
+            --light-color: #ffffff;
+            --dark-color: #1f2937;
+            --bg-color: #f3f4f6;
+            --border-radius: 16px;
+            --box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.5);
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             margin: 0;
             padding: 20px;
-            background-color: #f5f7fa;
+            background: linear-gradient(135deg, #f2e8fc 0%, #e1edfa 100%);
             color: var(--dark-color);
-            line-height: 1.6;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        [dir="rtl"] {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1000px;
+            margin-bottom: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 15px 30px;
+            border-radius: 100px;
+            box-shadow: var(--box-shadow);
+            border: var(--glass-border);
+            box-sizing: border-box;
         }
 
         h2 {
-            color: var(--primary-color);
-            margin-bottom: 25px;
-            text-align: center;
+            margin: 0;
             font-size: 2rem;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            font-weight: 800;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .lang-selector {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid #e5e7eb;
+            background: rgba(255,255,255,0.9);
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--dark-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .lang-selector:hover {
+            border-color: var(--primary-color);
+        }
+
+        .spacer-for-flex {
+            width: 100px; /* Balances the lang-selector to keep title centered */
         }
 
         canvas {
-            border: 2px solid var(--primary-color);
+            border: none;
             border-radius: var(--border-radius);
             cursor: crosshair;
-            margin-top: 20px;
+            margin-top: 10px;
             box-shadow: var(--box-shadow);
             background-color: white;
             max-width: 100%;
+            transition: transform 0.3s ease;
         }
 
-        .controls {
+        .controls-container {
             display: flex;
-            gap: 15px;
+            flex-direction: column;
             align-items: center;
-            margin: 20px 0;
-            flex-wrap: wrap;
-            justify-content: center;
-            background-color: white;
-            padding: 15px;
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: var(--glass-border);
+            padding: 25px;
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
-            width: 90%;
-            max-width: 800px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
         }
 
         label {
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-weight: 500;
-            color: var(--primary-color);
-            gap: 5px;
+            font-weight: 600;
+            color: var(--dark-color);
+            gap: 10px;
+            font-size: 0.95rem;
+        }
+
+        select, input[type="range"] {
+            cursor: pointer;
+        }
+        
+        select {
+            padding: 10px 15px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            background: var(--light-color);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        select:hover {
+            border-color: var(--primary-color);
         }
 
         input[type="color"] {
-            width: 40px;
-            height: 40px;
-            border: 2px solid var(--primary-color);
+            width: 50px;
+            height: 50px;
+            border: none;
             border-radius: 50%;
             cursor: pointer;
             padding: 0;
+            background: none;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: 3px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
         }
 
-        input[type="range"] {
-            width: 100px;
+        button, .upload-btn {
+            padding: 12px 28px;
+            font-size: 1rem;
             cursor: pointer;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 14px;
-            cursor: pointer;
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
             color: white;
             border: none;
-            border-radius: var(--border-radius);
-            transition: all 0.3s ease;
-            font-weight: 500;
-            box-shadow: var(--box-shadow);
+            border-radius: 30px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+            text-align: center;
+            display: inline-block;
         }
 
-        button:hover {
-            background-color: var(--accent-color);
-            transform: translateY(-2px);
+        button:hover, .upload-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
         }
 
-        button:active {
+        button:active, .upload-btn:active {
             transform: translateY(0);
         }
 
@@ -109,89 +203,181 @@
             display: none;
         }
 
-        .upload-btn {
-            padding: 12px 24px;
-            background-color: var(--primary-color);
-            color: white;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-weight: 500;
-            margin-bottom: 15px;
-            box-shadow: var(--box-shadow);
-            transition: all 0.3s ease;
-        }
-
-        .upload-btn:hover {
-            background-color: var(--accent-color);
-        }
-
         #clear {
-            background-color: #dc3545;
+            background: linear-gradient(135deg, #ef4444, #f43f5e);
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
         }
-
         #clear:hover {
-            background-color: #c82333;
+            box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.4);
         }
 
         #download {
-            background-color: #28a745;
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
         }
-
         #download:hover {
-            background-color: #218838;
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
         }
 
         @media (max-width: 768px) {
-            .controls {
+            .controls-row {
                 flex-direction: column;
                 align-items: stretch;
             }
-
             label {
                 flex-direction: row;
                 justify-content: space-between;
                 width: 100%;
             }
+            .action-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+            button, .upload-btn {
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                padding: 20px;
+                border-radius: var(--border-radius);
+            }
+            .spacer-for-flex {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
-    <h2>colorer maintenant</h2>
+    <div class="header">
+        <select id="langSelector" class="lang-selector">
+            <option value="fr">Français</option>
+            <option value="en">English</option>
+            <option value="ar">العربية</option>
+        </select>
+        <h2 id="titleText">Colorer maintenant</h2>
+        <div class="spacer-for-flex"></div>
+    </div>
 
-    <label for="upload" class="upload-btn">Choisir une image</label>
-    <input type="file" id="upload" accept="image/*" />
+    <div class="controls-container">
+        <div class="controls-row">
+            <label for="upload" class="upload-btn" id="uploadText">Choisir une image</label>
+            <input type="file" id="upload" accept="image/*" />
+        </div>
 
-    <div class="controls">
-        <label>
-            Outil :
-            <select id="toolSelector" style="padding: 5px; border-radius: var(--border-radius); border: 2px solid var(--primary-color);">
-                <option value="fill">Pot de peinture (Clic)</option>
-                <option value="erase">Gomme magique (Clic)</option>
-                <option value="brush">Pinceau (Glisser)</option>
-            </select>
-        </label>
-        <label>
-            Couleur :
-            <input type="color" id="colorPicker" value="#ffc0cb" />
-        </label>
-        <label>
-            Opacité (Pinceau) :
-            <input type="range" id="opacitySlider" min="0" max="1" step="0.01" value="1" />
-        </label>
-        <label>
-            Taille pinceau :
-            <input type="range" id="brushSize" min="1" max="100" value="15" />
-        </label>
-        <button id="clear">Effacer tout</button>
-        <button id="download">Télécharger l'image</button>
+        <div class="controls-row">
+            <label>
+                <span id="toolLabel">Outil :</span>
+                <select id="toolSelector">
+                    <option value="fill" id="optFill">Pot de peinture (Clic)</option>
+                    <option value="erase" id="optErase">Gomme magique (Clic)</option>
+                    <option value="brush" id="optBrush">Pinceau (Glisser)</option>
+                </select>
+            </label>
+            <label>
+                <span id="colorLabel">Couleur :</span>
+                <input type="color" id="colorPicker" value="#ec4899" />
+            </label>
+            <label>
+                <span id="opacityLabel">Opacité (Pinceau) :</span>
+                <input type="range" id="opacitySlider" min="0" max="1" step="0.01" value="1" />
+            </label>
+            <label>
+                <span id="sizeLabel">Taille pinceau :</span>
+                <input type="range" id="brushSize" min="1" max="100" value="15" />
+            </label>
+        </div>
+
+        <div class="action-buttons">
+            <button id="clear">Effacer tout</button>
+            <button id="download">Télécharger l'image</button>
+        </div>
     </div>
 
     <canvas id="canvas"></canvas>
 
     <script>
+        const translations = {
+            fr: {
+                title: "Colorer Maintenant",
+                upload: "Choisir une image",
+                tool: "Outil :",
+                toolFill: "Pot de peinture (Clic)",
+                toolErase: "Gomme magique (Clic)",
+                toolBrush: "Pinceau (Glisser)",
+                color: "Couleur :",
+                opacity: "Opacité (Pinceau) :",
+                brushSize: "Taille pinceau :",
+                clear: "Effacer tout",
+                download: "Télécharger l'image"
+            },
+            en: {
+                title: "Color Now",
+                upload: "Choose an image",
+                tool: "Tool:",
+                toolFill: "Paint Bucket (Click)",
+                toolErase: "Magic Eraser (Click)",
+                toolBrush: "Brush (Drag)",
+                color: "Color:",
+                opacity: "Opacity (Brush):",
+                brushSize: "Brush Size:",
+                clear: "Clear All",
+                download: "Download Image"
+            },
+            ar: {
+                title: "لوّن الآن",
+                upload: "اختر صورة",
+                tool: "الأداة:",
+                toolFill: "دلو الألوان (نقر)",
+                toolErase: "ممحاة سحرية (نقر)",
+                toolBrush: "فرشاة (سحب)",
+                color: "اللون:",
+                opacity: "الشفافية (الفرشاة):",
+                brushSize: "حجم الفرشاة:",
+                clear: "مسح الكل",
+                download: "تنزيل الصورة"
+            }
+        };
+
+        function updateLanguage(lang) {
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            
+            document.getElementById('titleText').innerText = translations[lang].title;
+            document.getElementById('uploadText').innerText = translations[lang].upload;
+            document.getElementById('toolLabel').innerText = translations[lang].tool;
+            document.getElementById('optFill').innerText = translations[lang].toolFill;
+            document.getElementById('optErase').innerText = translations[lang].toolErase;
+            document.getElementById('optBrush').innerText = translations[lang].toolBrush;
+            document.getElementById('colorLabel').innerText = translations[lang].color;
+            document.getElementById('opacityLabel').innerText = translations[lang].opacity;
+            document.getElementById('sizeLabel').innerText = translations[lang].brushSize;
+            document.getElementById('clear').innerText = translations[lang].clear;
+            document.getElementById('download').innerText = translations[lang].download;
+        }
+
+        document.getElementById('langSelector').addEventListener('change', (e) => {
+            updateLanguage(e.target.value);
+            localStorage.setItem("preferredLanguage", e.target.value);
+        });
+
+        const savedLang = localStorage.getItem("preferredLanguage") || 'fr';
+        document.getElementById('langSelector').value = savedLang;
+        updateLanguage(savedLang);
+
         const upload = document.getElementById("upload");
         const canvas = document.getElementById("canvas");
-        const ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
         const colorPicker = document.getElementById("colorPicker");
         const opacitySlider = document.getElementById("opacitySlider");
